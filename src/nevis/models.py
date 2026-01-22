@@ -49,27 +49,27 @@ class SearchResponse(BaseModel):
 
 class CoreApp(ABC):
     @abstractmethod
-    def add_client(self, client: NewClientData) -> Client:
+    async def add_client(self, client: NewClientData) -> Client:
         """Store a new client and return it."""
         ...
 
     @abstractmethod
-    def get_clients(self, client_ids: Sequence[ClientId]) -> list[Client]:
+    async def get_clients(self, client_ids: Sequence[ClientId]) -> list[Client]:
         """Retrieve client data from IDs."""
         ...
 
     @abstractmethod
-    def add_document(self, client_id: ClientId, document: NewDocumentData) -> Document:
+    async def add_document(self, client_id: ClientId, document: NewDocumentData) -> Document:
         """Store a new document and return it."""
         ...
 
     @abstractmethod
-    def get_client_documents(self, client_id: ClientId, doc_ids: Sequence[DocumentId]) -> list[Document]:
+    async def get_client_documents(self, client_id: ClientId, doc_ids: Sequence[DocumentId]) -> list[Document]:
         """Return documents belonging to a client."""
         ...
 
     @abstractmethod
-    def search(self, query: str, limit: int = 10) -> SearchResponse:
+    async def search(self, query: str, limit: int = 10) -> SearchResponse:
         ...
 
 

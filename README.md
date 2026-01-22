@@ -21,6 +21,24 @@ uv run pytest
 
 All tests are located in the `tests/` directory.
 
+## Deploying
+
+Build a container version of the application with one of the following commands:
+
+```bash
+docker build -t nevis_test:latest --load --pull .
+podman build -t nevis_test:latest --load --pull .
+```
+
+Run the container with a derivative of the following commands:
+
+```bash
+docker run -p 8000:8000 nevis_test:latest
+podman run -p 8000:8000 localhost/nevis_test:latest
+```
+
+Containers have been tested using Podman.
+
 ## Available Endpoints (brief)
 
 - **GET /clients** – Retrieve a list of clients.

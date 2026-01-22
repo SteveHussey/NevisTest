@@ -3,6 +3,7 @@ name = "nevis"
 version = "0.1.0"
 description = "Nevis Backend Home Task Implementation by Steven Hussey"
 requires-python = "==3.13.*"
+packages = [{include = "nevis", from = "src"}]
 dependencies = [
     "fastapi[standard]>=0.128.0",
 ]

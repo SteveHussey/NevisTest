@@ -5,7 +5,7 @@ info:
 paths:
   /clients:
     post:
-      request_body:
+      requestBody:
         required: true
         content:
           application/json:
@@ -28,6 +28,7 @@ paths:
                     type: string
       responses:
         "201":
+          description: Added a Client
           content:
             application/json:
               schema:
@@ -41,7 +42,7 @@ paths:
           required: true
           schema:
             type: string
-      request_body:
+      requestBody:
         required: true
         content:
           application/json:
@@ -55,6 +56,7 @@ paths:
                   type: string
       responses:
         "201":
+          description: Added a Document for the specified Client
           content:
             application/json:
               schema:
@@ -70,6 +72,7 @@ paths:
             type: string
       responses:
         "200":
+          "description": Run a query against Clients and Documents
           content:
             application/json:
               schema:

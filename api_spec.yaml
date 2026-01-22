@@ -34,10 +34,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/Client"
 
-  /clients/{id}/documents:
-    post:
+    get:
       parameters:
         - name: id
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "200":
+          description: Get Client details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+
+  /clients/{client_id}/documents:
+    post:
+      parameters:
+        - name: client_id
           in: path
           required: true
           schema:
@@ -61,6 +80,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Document"
+    get:
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "200":
+          description: Get document details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
 
   /search:
     get:
@@ -70,15 +112,27 @@ paths:
           required: true
           schema:
             type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: int
       responses:
         "200":
           "description": Run a query against Clients and Documents
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      anyOf:
+                        - $ref: "#/components/schemas/Client"
+                        - $ref: "#/components/schemas/Document"
+                  text:
+                    type: string
 
 components:
   schemas:

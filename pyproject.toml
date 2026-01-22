@@ -1,6 +1,17 @@
 [project]
-name = "nevistest"
+name = "nevis"
 version = "0.1.0"
 description = "Nevis Backend Home Task Implementation by Steven Hussey"
 requires-python = "==3.13.*"
-dependencies = []
+dependencies = [
+    "fastapi[standard]>=0.128.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"

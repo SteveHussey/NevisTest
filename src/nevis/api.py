@@ -1,41 +1,36 @@
 """FastAPI application, routers, and endpoint implementations for Nevis."""
-
-from typing import Sequence
+from collections.abc import Callable
 
 from fastapi import APIRouter, status, Depends, FastAPI, HTTPException, Query
+from qdrant_client import AsyncQdrantClient
 
+from .core import ClientDocCore
 from .models import Document, CoreApp, Client, NewClientData, NewDocumentData, ClientId, DocumentId, SearchResponse
+from .store import QdrantStore
 from .utils import InvalidClientError, InvalidDocumentError
 
 router = APIRouter()
 
 
 class InstanceHolder[T]:
-    def __init__(self, instance: T):
+
+    def __init__(self, *, instance: T | None = None, factory: Callable[[], T] | None = None):
         self.instance = instance
+        self.factory = factory
 
     def __call__(self) -> T:
+        if self.instance is None:
+            # Lazy initialisation
+            self.instance = self.factory()
         return self.instance
 
 
-class ClientDocCore(CoreApp):
-    async def add_client(self, client: NewClientData) -> Client:
-        raise NotImplementedError
-
-    async def get_clients(self, client_ids: Sequence[ClientId]) -> list[Client]:
-        raise NotImplementedError
-
-    async def add_document(self, client_id: ClientId, document: NewDocumentData) -> Document:
-        raise NotImplementedError
-
-    async def get_client_documents(self, client_id: ClientId, doc_ids: Sequence[DocumentId]) -> list[Document]:
-        raise NotImplementedError
-
-    async def search(self, query: str, limit: int = 10) -> SearchResponse:
-        raise NotImplementedError
+def app_core() -> CoreApp:
+    return ClientDocCore(
+        QdrantStore(AsyncQdrantClient(url="http://localhost:6333"), "BAAI/bge-small-en"))
 
 
-holder = InstanceHolder[CoreApp](ClientDocCore())
+holder = InstanceHolder[CoreApp](factory=app_core)
 CoreDep = Depends(holder)
 
 

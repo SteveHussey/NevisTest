@@ -70,7 +70,7 @@ class ClientDocTestCore(CoreApp):
 
 @pytest.fixture(scope="module")
 def tester_holder():
-    return InstanceHolder(ClientDocTestCore())
+    return InstanceHolder(instance=ClientDocTestCore())
 
 
 @pytest_asyncio.fixture(autouse=True)

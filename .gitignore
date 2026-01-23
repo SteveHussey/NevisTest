@@ -249,3 +249,6 @@ profile.json
 #.idea/
 
 /docker_home/
+
+# Project Specific
+qdrant_storage/

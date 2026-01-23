@@ -1,5 +1,6 @@
 """Pydantic models and in‑memory storage for the Nevis API."""
 from abc import ABC, abstractmethod
+from collections.abc import Collection
 from datetime import datetime, UTC
 from typing import Sequence, NewType, NamedTuple
 
@@ -70,6 +71,42 @@ class CoreApp(ABC):
 
     @abstractmethod
     async def search(self, query: str, limit: int = 10) -> SearchResponse:
+        ...
+
+
+class DataStore(ABC):
+    @abstractmethod
+    async def add_client(self, new_client: NewClientData) -> Client:
+        """Store a new client and return it."""
+        ...
+
+    @abstractmethod
+    async def get_clients(self, client_ids: Sequence[ClientId]) -> list[Client]:
+        """Retrieve client data for IDs."""
+        ...
+
+    @abstractmethod
+    async def add_document(self, client_id: ClientId, new_document: NewDocumentData) -> Document:
+        """Store a new document and return it."""
+        ...
+
+    @abstractmethod
+    async def get_client_documents(self, client_id: ClientId, doc_ids: Sequence[DocumentId]) -> list[Document]:
+        """Return documents belonging to a client."""
+        ...
+
+    @abstractmethod
+    async def search_client_data(self, query: str, *, limit: int = 10) -> list[Client]:
+        """Search for client data with a query."""
+        ...
+
+    @abstractmethod
+    async def search_document_data(self,
+                                   query: str,
+                                   *,
+                                   client_ids: Collection[ClientId] | None = None,
+                                   limit: int = 10) -> list[Document]:
+        """Search for document data with a query."""
         ...
 
 

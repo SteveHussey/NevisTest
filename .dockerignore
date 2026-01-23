@@ -31,3 +31,4 @@ __pycache__/
 /.kilocode
 
 # Project Specific
+qdrant_storage/

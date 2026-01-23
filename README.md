@@ -37,6 +37,13 @@ docker run -p 8000:8000 nevis_test:latest
 podman run -p 8000:8000 localhost/nevis_test:latest
 ```
 
+To run the full deployment including Qdrant, you can use the compose file provided:
+
+```bash
+docker-compose up
+podman-compose up
+```
+
 Containers have been tested using Podman.
 
 ## Available Endpoints (brief)

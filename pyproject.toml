@@ -6,6 +6,7 @@ requires-python = "==3.13.*"
 packages = [{include = "nevis", from = "src"}]
 dependencies = [
     "fastapi[standard]>=0.128.0",
+    "qdrant-client[fastembed]>=1.16.2",
 ]
 
 [dependency-groups]

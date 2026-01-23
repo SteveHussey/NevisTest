@@ -24,16 +24,18 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable
 
 # Then, use a final image without uv
-FROM gcr.io/distroless/cc-debian12:nonroot as runtime
+FROM docker.io/debian:trixie-slim as runtime
+
+RUN groupadd -g 1000 nevis && useradd -m -u 1000 -g nevis nevis
 
 # Copy the Python version
-COPY --from=builder --chown=nonroot:nonroot /python /python
+COPY --from=builder --chown=nevis:nevis /python /python
 
 WORKDIR /env
 
 # Copy the application from the builder
-COPY --from=builder --chown=nonroot:nonroot /app/.venv /env
-USER nonroot
+COPY --from=builder --chown=nevis:nevis /app/.venv /env
+USER nevis
 
 # Place executables in the environment at the front of the path
 ENV PATH="/env/bin:$PATH"

@@ -81,7 +81,7 @@ For full API documentation and schema details, refer to the OpenAPI specificatio
 ## Future Improvements
 
 - ~~Implement CI checks.~~ 
-- Write a utility to bulk insert data via the API and generate some sample data to accompany it.
+- ~~Write a utility to bulk insert data via the API and generate some sample data to accompany it.~~
 - Add an LLM agent to the search method of ClientDocCore, using CrewAI or equivalent.
 - Query vetting/guarding via LLM agent.
 - Add authentication and access control to the API.

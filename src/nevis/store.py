@@ -19,6 +19,13 @@ class QdrantStore(DataStore):
     CLIENT_ID_GEN = id_generator(4)
     DOC_ID_GEN = id_generator(6)
 
+    CLIENT_ID_FIELD = "id"
+    DOC_ID_FIELD = "id"
+    COLL_ID_FIELDS = {
+        CLIENT_COLLECTION: CLIENT_ID_FIELD,
+        DOCUMENT_COLLECTION: DOC_ID_FIELD,
+    }
+    DOC_CLIENT_ID_FIELD = "client_id"
     CLIENT_EMBED_FIELDS = frozenset(['first_name', 'last_name', 'email', 'description', 'social_links'])
     DOC_EMBED_FIELDS = frozenset(['title', 'content'])
 
@@ -54,12 +61,13 @@ class QdrantStore(DataStore):
                 return new_id
 
     async def _id_exists(self, id_str: str, coll_name: str) -> bool:
+        id_field = self.COLL_ID_FIELDS[coll_name]
         points, _ = await self.client.scroll(
             collection_name=coll_name,
             scroll_filter=models.Filter(
                 must=[
                     models.FieldCondition(
-                        key="id",
+                        key=id_field,
                         match=models.MatchValue(value=id_str),
                     ),
                 ]
@@ -108,7 +116,7 @@ class QdrantStore(DataStore):
             scroll_filter=models.Filter(
                 must=[
                     models.FieldCondition(
-                        key="id",
+                        key=self.CLIENT_ID_FIELD,
                         match=models.MatchAny(any=list(client_ids)),
                     ),
                 ]
@@ -116,7 +124,7 @@ class QdrantStore(DataStore):
             with_payload=True,
             with_vectors=False,
         )
-        client_map = {p.payload["id"]: Client(**p.payload) for p in points}
+        client_map = {p.payload[self.CLIENT_ID_FIELD]: Client(**p.payload) for p in points}
         clients = []
         for client_id in client_ids:
             try:
@@ -154,11 +162,11 @@ class QdrantStore(DataStore):
             scroll_filter=models.Filter(
                 must=[
                     models.FieldCondition(
-                        key="client_id",
+                        key=self.DOC_CLIENT_ID_FIELD,
                         match=models.MatchValue(value=client_id),
                     ),
                     models.FieldCondition(
-                        key="id",
+                        key=self.CLIENT_ID_FIELD,
                         match=models.MatchAny(any=list(doc_ids)),
                     ),
                 ]
@@ -166,7 +174,7 @@ class QdrantStore(DataStore):
             with_payload=True,
             with_vectors=False,
         )
-        doc_map = {p.payload["id"]: Document(**p.payload) for p in points}
+        doc_map = {p.payload[self.DOC_ID_FIELD]: Document(**p.payload) for p in points}
         docs = []
         for doc_id in doc_ids:
             try:
@@ -191,7 +199,7 @@ class QdrantStore(DataStore):
         if client_ids:
             query_filter = models.Filter(
                 must=[
-                    models.FieldCondition(key="client_id", match=models.MatchAny(any=list(client_ids))),
+                    models.FieldCondition(key=self.DOC_CLIENT_ID_FIELD, match=models.MatchAny(any=list(client_ids))),
                 ]
             )
         else:

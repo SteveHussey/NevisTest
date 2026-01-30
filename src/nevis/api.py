@@ -1,7 +1,7 @@
 """FastAPI application, routers, and endpoint implementations for Nevis."""
-from collections.abc import Callable
+from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, status, Depends, FastAPI, HTTPException, Query
+from fastapi import APIRouter, status, Depends, FastAPI, HTTPException, Query, Request
 from qdrant_client import AsyncQdrantClient
 
 from .core import ClientDocCore
@@ -12,26 +12,23 @@ from .utils import InvalidClientError, InvalidDocumentError
 router = APIRouter()
 
 
-class InstanceHolder[T]:
-
-    def __init__(self, *, instance: T | None = None, factory: Callable[[], T] | None = None):
-        self.instance = instance
-        self.factory = factory
-
-    def __call__(self) -> T:
-        if self.instance is None:
-            # Lazy initialisation
-            self.instance = self.factory()
-        return self.instance
-
-
-def app_core() -> CoreApp:
-    return ClientDocCore(
-        QdrantStore(AsyncQdrantClient(url="http://localhost:6333"), "BAAI/bge-small-en"))
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # ✅ Create once - shared across requests
+    qdrant_client = AsyncQdrantClient(url="http://localhost:6333")
+    store = QdrantStore(qdrant_client, "BAAI/bge-small-en")
+    await store.setup_qdrant()
+    app.state.core = ClientDocCore(store)
+    yield
+    # ✅ Cleanup on shutdown
+    await qdrant_client.close()
 
 
-holder = InstanceHolder[CoreApp](factory=app_core)
-CoreDep = Depends(holder)
+def get_core(request: Request) -> CoreApp:
+    return request.app.state.core
+
+
+CoreDep = Depends(get_core)
 
 
 @router.post(
@@ -108,5 +105,5 @@ async def search_endpoint(q: str, limit: int = Query(default=10), core: CoreApp 
     return await core.search(query=q, limit=limit)
 
 
-app = FastAPI(title="Nevis API")
+app = FastAPI(title="Nevis API", lifespan=lifespan)
 app.include_router(router)

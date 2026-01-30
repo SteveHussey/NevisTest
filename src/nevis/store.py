@@ -1,5 +1,4 @@
 import logging
-from asyncio import  get_running_loop, run, eager_task_factory, wait_for
 from collections.abc import Generator
 from typing import Collection, Sequence
 from uuid import uuid4, UUID
@@ -26,18 +25,8 @@ class QdrantStore(DataStore):
     def __init__(self, qdrant_client: AsyncQdrantClient, embedding_model: str):
         self.client = qdrant_client
         self.embed_model = embedding_model
-        # self._setup_qdrant()
-        loop = None
-        try:
-            loop = get_running_loop()
-        except RuntimeError:
-            run(self._setup_qdrant())
 
-        if loop:
-            task = eager_task_factory(loop, self._setup_qdrant())
-            wait_for(task, timeout=3)
-
-    async def _setup_qdrant(self):
+    async def setup_qdrant(self):
         if not await self.client.collection_exists(self.CLIENT_COLLECTION):
             await self.client.create_collection(
                 collection_name=self.CLIENT_COLLECTION,

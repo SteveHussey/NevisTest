@@ -20,6 +20,7 @@ import sys
 from logging import getLogger
 from os import PathLike
 from pathlib import Path
+from time import perf_counter_ns
 
 import requests
 
@@ -63,22 +64,32 @@ def create_document(base_url: str, client_id: str, doc: dict) -> None:
 def main(data_file: PathLike, base_url: str) -> None:
     args = parse_args()
     records = load_records(data_file)
+    start_time_ns = perf_counter_ns()
+    clients_inserted = 0
+    docs_inserted = 0
     for entry in records:
         client = entry.get("client")
         docs = entry.get("documents", [])
         if args.dry_run:
             logger.info("[DRY RUN] Would create client: %s", client)
+            clients_inserted += 1
             for doc in docs:
                 logger.info("[DRY RUN]   Would create client document: %s", doc.get('title'))
+                docs_inserted += 1
             continue
         try:
             client_id = create_client(base_url, client)
             logger.info("Created client %s", client_id)
+            clients_inserted += 1
             for doc in docs:
                 create_document(base_url, client_id, doc)
                 logger.info("  Created document '%s'", doc.get('title'))
+                docs_inserted += 1
         except Exception:
             logger.exception(f"Error processing entry")
+
+    elapsed_secs = (perf_counter_ns() - start_time_ns) / 1e9
+    logger.info('Inserted %s clients and %s docs in %.2fss', clients_inserted, docs_inserted, elapsed_secs)
 
 
 if __name__ == "__main__":

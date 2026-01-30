@@ -4,7 +4,7 @@ from typing import Collection, Sequence
 from uuid import uuid4, UUID
 
 from qdrant_client import AsyncQdrantClient, models
-from qdrant_client.http.models import UpdateStatus
+from qdrant_client.http.models import UpdateStatus, PayloadSchemaType
 
 from nevis.models import DataStore, ClientId, Document, Client, DocumentId, NewDocumentData, NewClientData
 from nevis.utils import id_generator, InvalidClientError, InvalidDocumentError
@@ -42,6 +42,12 @@ class QdrantStore(DataStore):
                     distance=models.Distance.COSINE
                 ),  # size and distance are model dependent
             )
+
+            await self.client.create_payload_index(
+                collection_name=self.CLIENT_COLLECTION,
+                field_name=self.CLIENT_ID_FIELD,
+                field_schema=PayloadSchemaType.KEYWORD,
+            )
             LOGGER.info('Created Qdrant collection: %s', self.CLIENT_COLLECTION)
 
         if not await self.client.collection_exists(self.DOCUMENT_COLLECTION):
@@ -51,6 +57,17 @@ class QdrantStore(DataStore):
                     size=self.client.get_embedding_size(self.embed_model),
                     distance=models.Distance.COSINE
                 ),  # size and distance are model dependent
+            )
+
+            await self.client.create_payload_index(
+                collection_name=self.DOCUMENT_COLLECTION,
+                field_name=self.DOC_ID_FIELD,
+                field_schema=PayloadSchemaType.KEYWORD,
+            )
+            await self.client.create_payload_index(
+                collection_name=self.DOCUMENT_COLLECTION,
+                field_name=self.DOC_CLIENT_ID_FIELD,
+                field_schema=PayloadSchemaType.KEYWORD,
             )
             LOGGER.info('Created Qdrant collection: %s', self.DOCUMENT_COLLECTION)
 

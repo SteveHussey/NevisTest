@@ -9,7 +9,7 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 
-from nevis.api import app, holder, InstanceHolder
+from nevis.api import app, get_core
 from nevis.models import CoreApp, NewClientData, Client, ClientId, NewDocumentData, Document, DocumentId, SearchResponse
 from nevis.utils import InvalidClientError, InvalidDocumentError
 
@@ -68,15 +68,14 @@ class ClientDocTestCore(CoreApp):
         return self.SEARCH_RESPONSES[query]
 
 
-@pytest.fixture(scope="module")
-def tester_holder():
-    return InstanceHolder(instance=ClientDocTestCore())
+def tester_core() -> CoreApp:
+    return ClientDocTestCore()
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def client(tester_holder) -> AsyncGenerator[AsyncClient, None]:
+async def client() -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
-        app.dependency_overrides[holder] = tester_holder
+        app.dependency_overrides[get_core] = tester_core
         yield client
         app.dependency_overrides = {}
 

@@ -22,7 +22,9 @@ async def qdrant_client() -> AsyncGenerator[AsyncQdrantClient, None]:
 
 @pytest_asyncio.fixture()
 async def ds(qdrant_client):
-    return QdrantStore(qdrant_client, "BAAI/bge-small-en")
+    store = QdrantStore(qdrant_client, "BAAI/bge-small-en")
+    await store.setup_qdrant()
+    return store
 
 
 CLIENT1 = NewClientData(

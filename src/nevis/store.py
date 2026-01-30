@@ -50,22 +50,24 @@ class QdrantStore(DataStore):
     async def _get_new_object_id(self, id_gen: Generator[str], coll_name: str) -> str:
         while True:
             new_id = next(id_gen)
-            # Check if new_id is already used
-            points, _ = await self.client.scroll(
-                collection_name=coll_name,
-                scroll_filter=models.Filter(
-                    must=[
-                        models.FieldCondition(
-                            key="id",
-                            match=models.MatchValue(value=new_id),
-                        ),
-                    ]
-                ),
-                with_payload=False,
-                with_vectors=False,
-            )
-            if not points:
+            if not await self._id_exists(new_id, coll_name):
                 return new_id
+
+    async def _id_exists(self, id_str: str, coll_name: str) -> bool:
+        points, _ = await self.client.scroll(
+            collection_name=coll_name,
+            scroll_filter=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="id",
+                        match=models.MatchValue(value=id_str),
+                    ),
+                ]
+            ),
+            with_payload=False,
+            with_vectors=False,
+        )
+        return True if points else False
 
     async def _get_new_point_id(self, coll_name: str) -> UUID:
         while True:
@@ -124,6 +126,9 @@ class QdrantStore(DataStore):
         return clients
 
     async def add_document(self, client_id: ClientId, new_document: NewDocumentData) -> Document:
+        if not await self._id_exists(client_id, self.CLIENT_COLLECTION):
+            raise InvalidClientError(client_id)
+
         new_id = DocumentId(await self._get_new_object_id(self.DOC_ID_GEN, self.DOCUMENT_COLLECTION))
         doc = Document(id=new_id, client_id=client_id, **new_document.model_dump())
 

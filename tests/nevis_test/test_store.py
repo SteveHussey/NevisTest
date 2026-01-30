@@ -78,6 +78,9 @@ async def test_add_and_get_document(ds: QdrantStore):
     assert fetched_doc.client_id == client_obj.id
     assert fetched_doc.title == "Doc Title"
 
+    with pytest.raises(InvalidClientError):
+        await ds.add_document(ClientId("blah"), new_doc)
+
     with pytest.raises(InvalidDocumentError):
         await ds.get_client_documents(client_obj.id, [DocumentId("a")])
 
